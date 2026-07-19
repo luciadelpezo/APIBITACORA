@@ -9,14 +9,14 @@ import reportesRoutes from './routes/reportes.routes.js';
 const app = express();
 
 const corsOptions = {
-    origin: '*',
+    origin: 'http://localhost:8100', // Pon el origen exacto en lugar de '*'
+
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true
 };
 
 app.use(cors(corsOptions)); // Habilitar los cors
-app.use(express.json()); // Para que interprete los objetos .json
-
+app.use(express.json()); 
 // Rutas
 app.use('/api', authRoutes);
 app.use('/api', vehiculosRoutes);

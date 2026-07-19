@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = 'segura2026'; // en producción cámbialo y muévelo a .env
+const JWT_SECRET = 'segura2026';
 
 export const verificarToken = (req, res, next) => {
     const bearerHeader = req.headers['authorization'];
