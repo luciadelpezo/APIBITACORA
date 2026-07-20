@@ -2,7 +2,8 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { conmysql } from '../db.js';
 import { JWT_SECRET } from '../middlewares/auth.middleware.js';
-
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 export const login = async (req, res) => {
     try {
         const { usr_usuario, usr_clave } = req.body;
@@ -78,5 +79,69 @@ export const registro = async (req, res) => {
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: 'Error en el servidor al registrar' });
+    }
+
+};
+export const solicitarRecuperacion = async (req, res) => {
+    try {
+        const { usr_correo } = req.body;
+        const [rows] = await conmysql.query('SELECT usr_id FROM usuarios WHERE usr_correo = ?', [usr_correo]);
+
+        if (rows.length <= 0) {
+            return res.status(404).json({ message: 'Correo no encontrado' });
+        }
+
+        // Generar token aleatorio
+        const resetToken = crypto.randomBytes(20).toString('hex');
+        const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+
+        // Guardar token en BD
+        await conmysql.query('UPDATE usuarios SET reset_token = ?, reset_token_expires = ? WHERE usr_correo = ?', 
+            [resetToken, expires, usr_correo]);
+
+        // Configuración de envío de correo
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'luciadelpezoreyes4@gmail.com', // correo
+                pass: 'fawppxmszoirhdgw'    //código de 16 caracteres
+            }
+        });
+
+        await transporter.sendMail({
+            from: 'luciadelpezoreyes4@gmail.com',
+            to: usr_correo,
+            subject: 'Recuperación de contraseña',
+            text: `Tu código de recuperación es: ${resetToken}`
+        });
+
+        return res.json({ message: 'Se ha enviado un código a tu correo' });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: 'Error en el servidor al enviar correo' });
+    }
+};
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { token, nuevaClave } = req.body;
+
+        const [rows] = await conmysql.query(
+            'SELECT usr_id FROM usuarios WHERE reset_token = ?'            [token]
+        );
+
+        if (rows.length <= 0) {
+            return res.status(400).json({ message: 'Token inválido o expirado' });
+        }
+
+        const hash = await bcrypt.hash(nuevaClave, 10);
+        await conmysql.query(
+            'UPDATE usuarios SET usr_clave = ?, reset_token = NULL, reset_token_expires = NULL WHERE usr_id = ?',
+            [hash, rows[0].usr_id]
+        );
+
+        return res.json({ message: 'Contraseña actualizada correctamente' });
+    } catch (error) {
+        return res.status(500).json({ message: 'Error al actualizar' });
     }
 };
