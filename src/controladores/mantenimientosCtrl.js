@@ -26,7 +26,8 @@ export const getMantenimientos = async (req, res) => {
         );
         res.json(result);
     } catch (error) {
-        return res.status(500).json({ message: "Error al consultar mantenimientos" });
+        console.error("ERROR DETALLADO EN GET MANTENIMIENTOS:", error);
+        return res.status(500).json({ message: "Error al consultar mantenimientos", error: error.message });
     }
 };
 
@@ -51,7 +52,8 @@ export const postInsertarMantenimiento = async (req, res) => {
 
         res.json({ mnt_id: result.insertId, message: "Mantenimiento registrado correctamente" });
     } catch (error) {
-        return res.status(500).json({ message: "Error en el servidor" });
+        console.error("ERROR DETALLADO EN MANTENIMIENTO:", error);
+        return res.status(500).json({ message: 'Error en el servidor', error: error.message });
     }
 };
 
@@ -77,7 +79,8 @@ export const putMantenimiento = async (req, res) => {
 
         res.json({ message: "Mantenimiento actualizado correctamente" });
     } catch (error) {
-        return res.status(500).json({ message: "Error en el servidor" });
+        console.error("ERROR DETALLADO EN PUT MANTENIMIENTO:", error);
+        return res.status(500).json({ message: 'Error en el servidor', error: error.message });
     }
 };
 
@@ -96,6 +99,7 @@ export const deleteMantenimiento = async (req, res) => {
         await conmysql.query('DELETE FROM mantenimientos WHERE mnt_id = ?', [id]);
         res.json({ message: "Mantenimiento eliminado correctamente" });
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        console.error("ERROR DETALLADO EN DELETE MANTENIMIENTO:", error);
+        return res.status(500).json({ message: 'Error en el servidor', error: error.message });
     }
 };

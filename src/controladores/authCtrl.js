@@ -94,15 +94,20 @@ export const solicitarRecuperacion = async (req, res) => {
         const codigo = Math.floor(100000 + Math.random() * 900000).toString();
 
         await conmysql.query(
-            'UPDATE usuarios SET reset_token = ?, reset_token_expires = DATE_ADD(NOW(), INTERVAL 1 HOUR) WHERE usr_correo = ?', 
+            'UPDATE usuarios SET reset_token = ?, reset_token_expires = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 1 HOUR) WHERE usr_correo = ?', 
             [codigo, usr_correo]
         );
 
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
             auth: {
                 user: 'luciadelpezoreyes4@gmail.com',
                 pass: 'fawppxmszoirhdgw'
+            },
+            tls: {
+                rejectUnauthorized: false
             }
         });
 
@@ -125,7 +130,7 @@ export const resetPassword = async (req, res) => {
         const { usr_correo, token, nuevaClave } = req.body;
 
         const [rows] = await conmysql.query(
-            'SELECT usr_id FROM usuarios WHERE usr_correo = ? AND reset_token = ? AND NOW() <= reset_token_expires',
+            'SELECT usr_id FROM usuarios WHERE usr_correo = ? AND reset_token = ? AND UTC_TIMESTAMP() <= reset_token_expires',
             [usr_correo, token]
         );
 

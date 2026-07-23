@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { login, registro, solicitarRecuperacion, resetPassword} from '../controladores/authCtrl.js';
+import { login, registro, solicitarRecuperacion, resetPassword } from '../controladores/authCtrl.js';
 
 const router = Router();
 
